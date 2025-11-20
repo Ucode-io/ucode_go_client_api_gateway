@@ -1,0 +1,38 @@
+package storage
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	pb "ucode/ucode_go_client_api_gateway/genproto/project_service"
+
+	"github.com/go-redis/redis/v8"
+)
+
+var ErrorTheSameId = errors.New("cannot use the same uuid for 'id' and 'parent_id' fields")
+var ErrorProjectId = errors.New("not valid 'project_id'")
+
+type StorageI interface {
+	CloseDB()
+	Project() ProjectRepoI
+}
+
+type ProjectRepoI interface {
+	Create(ctx context.Context, entity *pb.CreateProjectRequest) (pKey *pb.ProjectPrimaryKey, err error)
+	GetList(ctx context.Context, queryParam *pb.GetAllProjectsRequest) (res *pb.GetAllProjectsResponse, err error)
+	GetByPK(ctx context.Context, pKey *pb.ProjectPrimaryKey) (res *pb.Project, err error)
+	Update(ctx context.Context, entity *pb.UpdateProjectRequest) (rowsAffected int64, err error)
+	Delete(ctx context.Context, pKey *pb.ProjectPrimaryKey) (namespace string, rowsAffected int64, err error)
+}
+
+type RedisStorageI interface {
+	SetX(ctx context.Context, key string, value string, duration time.Duration, projectId string, nodeType string) error
+	Get(ctx context.Context, key string, projectId string, nodeType string) (string, error)
+	Del(ctx context.Context, key string, projectId string, nodeType string) error
+	Set(ctx context.Context, key string, value interface{}, duration time.Duration, projectId string, nodeType string) error
+	DelMany(ctx context.Context, keys []string, projectId string, nodeType string) error
+	GetResult(ctx context.Context, key string, projectId string, nodeType string) *redis.StringCmd
+	Incr(ctx context.Context, key string, projectId string, nodeType string) *redis.IntCmd
+	Expire(ctx context.Context, key string, expiration time.Duration, projectId string, nodeType string) *redis.BoolCmd
+}
