@@ -1,4 +1,4 @@
-FROM golang:1.21.6 as builder
+FROM golang:1.23.4 AS builder
 
 #
 RUN mkdir -p $GOPATH/src/gitlab.udevs.io/ucode/ucode_go_client_api_gateway 
